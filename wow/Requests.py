@@ -188,6 +188,10 @@ class Request():
         return self.handleResponse(response, self.getPetsIndex, None, ('pets',))
 
 
+    def getRealmData(self):
+        pass
+
+
     def getRealms(self):
         endpoint = "search/realm"
         try: response = requests.get(self.endpoint.format(endpoint, "dynamic", ""))
@@ -271,3 +275,7 @@ class Request():
             data = data[key]
 
         return data
+
+
+    def searchResponse(self, response):
+        pass

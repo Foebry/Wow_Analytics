@@ -5,7 +5,7 @@
 class Realm:
     """ """
 
-    def __init__(self, _id, data, db, logger):
+    def __init__(self, _id, db, logger, request, store=True, region=False):
         """
             Realm constructor. Takes in 4 argument
                 :arg: _id -> int
@@ -14,8 +14,8 @@ class Realm:
                 :arg: logger -> obj<Logger>
         """
         self.id = _id
-        self.name = data['name']
-        self.output = data['file']
+        self.name = request.getRealmData(condition=("id", self.id))["name"]
+        self.output = self.setOutputFile(request, region)
         self.database = db
         self.logger = logger
         self.auctions = {}
