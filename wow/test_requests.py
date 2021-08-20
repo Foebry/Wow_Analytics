@@ -4,7 +4,8 @@ import os
 
 class RequestTest(unittest.TestCase):
 
-    def init(self):
+    @staticmethod
+    def init():
         from logger.Logger import Logger
         from databases.Database import Database
         from operations import Operation
@@ -86,9 +87,18 @@ class RequestTest(unittest.TestCase):
     def test_getPetsIndex(self):
         pass
 
-    @unittest.skip
+
     def test_getRealmData(self):
-        pass
+        data = request.getRealmData(("id", 1096))
+
+        self.assertEqual(dict, type(data))
+        self.assertEqual(True, "name" in data)
+        self.assertEqual(True, "id" in data)
+        self.assertEqual(True, "slug" in data)
+        self.assertEqual("Scarshield Legion", data["name"])
+        self.assertEqual(1096, data["id"])
+        self.assertEqual("scarshield-legion", data["slug"])
+
 
     @unittest.skip
     def test_getRealms(self):
@@ -116,6 +126,5 @@ class RequestTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    test = RequestTest()
-    data, db, logger, request, operation = test.init()
+    data, db, logger, request, operation = RequestTest.init()
     unittest.main()

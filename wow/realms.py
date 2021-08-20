@@ -14,6 +14,7 @@ class Realm:
                 :arg: logger -> obj<Logger>
         """
         self.id = _id
+        self.store = store
         self.name = request.getRealmData(condition=("id", self.id))["name"]
         self.output = self.setOutputFile(request, region)
         self.database = db
@@ -52,6 +53,20 @@ class Realm:
 
     def exportAuctionData(self):
         pass
+
+
+
+    def setOutputFile(self, request, region):
+        """
+
+        """
+        if self.store is False: return None
+
+        slug = request.getRealmData(("id", self.id))["slug"]
+        location = "D://Games//World of Warcraft//_retail_//Interface//AddOns//wow_analytics//"
+        extension = ".lua"
+
+        return location + slug + extension
 
 
 

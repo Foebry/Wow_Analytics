@@ -3,6 +3,7 @@ import unittest
 
 class AuctionTest(unittest.TestCase):
 
+    @staticmethod
     def test_init(self):
 
         # testing rebuilding auction
@@ -74,4 +75,5 @@ class SoldAuctionTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    AuctionTest.init()
     unittest.main()

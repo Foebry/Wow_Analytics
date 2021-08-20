@@ -6,10 +6,6 @@ from realms import *
 
 class RealmTest(unittest.TestCase):
 
-    def main(self):
-        self.test_init()
-        self.test_update()
-
     @staticmethod
     def init():
         from databases.Database import Database

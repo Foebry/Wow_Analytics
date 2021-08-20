@@ -42,6 +42,8 @@ class Request():
         self.access_token = self.handleResponse(response, self.setAccessToken, None, ('access_token',))
         self.endpoint = self.setEndpoint()
 
+        return self.access_token
+
 
 
     def getAuctionData(self, realm, operation):
@@ -188,8 +190,22 @@ class Request():
         return self.handleResponse(response, self.getPetsIndex, None, ('pets',))
 
 
-    def getRealmData(self):
-        pass
+    def getRealmData(self, condition):
+        """
+            Method to extract data for specific realm from list of realms.
+        """
+
+        if condition[0] == "id" and condition[1] == 0:
+            return {"name": "Region", "slug": "region"}
+        endpoint = "realm/index"
+        try: response = requests.get(self.endpoint.format(endpoint, "dynamic", ""))
+        except requests.exceptions.ConnectionError:
+            return self.reconnect(self.getRealmData, (condition,))
+
+        return self.searchResponse(response, self.getRealmData, (condition,), condition, keys=("realms",))
+
+
+
 
 
     def getRealms(self):
@@ -262,7 +278,7 @@ class Request():
 
 
 
-    def traverseResponse(self, response, keys):
+    def traverseResponse(self, response, keys=None):
 
         data = response.json()
 
@@ -277,5 +293,19 @@ class Request():
         return data
 
 
-    def searchResponse(self, response):
-        pass
+
+    def searchResponse(self, response, func, args, condition, keys):
+        """
+
+        """
+        arg = condition[0]
+        check = condition[1]
+
+        data = self.handleResponse(response, func, args, keys)
+
+        if not data: return data
+
+        for x in data:
+            if x[arg] == check: return x
+
+        return False

@@ -21,7 +21,7 @@ def testcases():
 
 
 
-def setup(test):
+def setup():
     from databases.Database import Database
     from logger.Logger import Logger
     from realms import Realm
@@ -37,7 +37,7 @@ def setup(test):
     logger.log(msg="*"*65+"Started new session!"+"*"*65, timestamped=False, level_display=False)
     logger.log(msg="*"*150, timestamped=False, level_display=False)
 
-    db = Database(DATABASE, logger, test)
+    db = Database(DATABASE, logger)
 
     request = Request(CREDENTIALS, db, logger)
 
@@ -95,10 +95,9 @@ def main():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--test", dest="test", action="store_true")
-    parser.add_argument("--run-tests", dest="testcase", action="store_true")
+    parser.add_argument("--tests", dest="testcase", action="store_true")
     args = parser.parse_args()
     if args.testcase: testcases()
-    operation, request = setup(args.test)
+    operation, request = setup()
 
     main()

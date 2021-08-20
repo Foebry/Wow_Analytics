@@ -1,11 +1,12 @@
 import unittest
 import os
 
-from Operation import *
+from operations import *
 
 class OperationTest(unittest.TestCase):
 
-    def init(self):
+    @staticmethod
+    def init():
         from databases.Database import Database
         from logger.Logger import Logger
         from config import DATABASE as data
@@ -28,51 +29,6 @@ class OperationTest(unittest.TestCase):
 
     @unittest.skip
     def test_setRegionRealms(self):
-        pass
-
-
-    @unittest.skip
-    def test_createInsertAuctionsQuery(self):
-        pass
-
-
-    @unittest.skip
-    def test_createUpdateAuctionsQuery(self):
-        pass
-
-
-    @unittest.skip
-    def test_creatSolauctionsQuery(self):
-        pass
-
-
-    @unittest.skip
-    def tet_createInsertItemsQuery(self):
-        pass
-
-
-    @unittest.skip
-    def test_createUpdateItemsQuery(self):
-        pass
-
-
-    @unittest.skip
-    def test_createInsertMountsQuery(self):
-        pass
-
-
-    @unittest.skip
-    def test_createInsertPetsQuery(self):
-        pass
-
-
-    @unittest.skip
-    def test_createInsertClassesQuery(self):
-        pass
-
-
-    @unittest.skip
-    def test_createInsertSubclassesQuery(self):
         pass
 
 
@@ -137,6 +93,5 @@ class OperationTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    test = OperationTest()
-    db, logger = test.init()
+    db, logger, operation = OperationTest.init()
     unittest.main()
