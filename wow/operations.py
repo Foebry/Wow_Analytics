@@ -334,30 +334,6 @@ class Operation:
 
 
 
-    def updateData(self):
-        """Updates all data to be updated (auctions, items). Takes in 2 arguments:
-            :arg database: obj<Database>,
-            :arg update_data: dict"""
-
-        items_to_update = "items" in self.update_data and len(self.update_data["items"]) > 0
-        realms_to_update = "realms" in self.update_data and len(self.update_data["realms"]) > 0
-
-        self.logger.log(msg="\n")
-
-        for realm in self.realms:
-            auctions_to_update = "auctions" in self.update_data and len(self.update_data["auctions"][realm.id]) > 0
-            if auctions_to_update:
-                self.createUpdateAuctionsQuery((0, self.database.restraint), realm)
-
-        if items_to_update:
-            end = len(self.update_data["items"])
-            self.createUpdateItemsQuery((0, self.database.restraint))
-
-        if realms_to_update:
-            for realm in self.update_data["realms"]: realm.update()
-
-
-
     def insertData(self):
         """
             Function responsible to write all data into the database.
@@ -434,6 +410,30 @@ class Operation:
                 soldauctions = len(self.insert_data["sold_auctions"][realm.id])
                 section = (0, min(self.database.restraint, soldauctions))
                 self.createSoldauctionsQuery(section, realm)
+
+
+
+    def updateData(self):
+        """Updates all data to be updated (auctions, items). Takes in 2 arguments:
+            :arg database: obj<Database>,
+            :arg update_data: dict"""
+
+        items_to_update = "items" in self.update_data and len(self.update_data["items"]) > 0
+        realms_to_update = "realms" in self.update_data and len(self.update_data["realms"]) > 0
+
+        self.logger.log(msg="\n")
+
+        for realm in self.realms:
+            auctions_to_update = "auctions" in self.update_data and len(self.update_data["auctions"][realm.id]) > 0
+            if auctions_to_update:
+                self.createUpdateAuctionsQuery((0, self.database.restraint), realm)
+
+        if items_to_update:
+            end = len(self.update_data["items"])
+            self.createUpdateItemsQuery((0, self.database.restraint))
+
+        if realms_to_update:
+            for realm in self.update_data["realms"]: realm.update()
 
 
 

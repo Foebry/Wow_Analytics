@@ -14,7 +14,7 @@ class RequestTest(unittest.TestCase):
         from config import CREDENTIALS as data
 
         logger = Logger(os.getcwd())
-        db = Database(db_data, logger)
+        db = Database(db_data, logger, test=True)
         request = Request(data, db, logger)
         operation = Operation(db, logger)
 
@@ -31,61 +31,114 @@ class RequestTest(unittest.TestCase):
         self.assertEqual(logger, request.logger)
 
 
-    @unittest.skip ("no need if test_init works")
     def test_setEndpoint(self):
         request.setAccessToken()
         self.assertEqual("https://eu.api.blizzard.com/data/wow/{}?namespace={}-eu&locale=en_GB{}&access_token=%s"%request.access_token, request.setEndpoint())
 
-    @unittest.skip ("no need if test_init works")
+
     def test_setAccessToken(self):
-        request.setAccessToken()
+        self.assertEqual(request.setAccessToken(), request.access_token)
         self.assertEqual(str, type(request.access_token))
 
 
-    @unittest.skip
     def test_getAuctionData(self):
-        from operations import Operation
-        operation = Operation(db, logger)
+        from realms import Realm
 
-        request.getAuctionData()
+        realm_id = 1096
+        realm = Realm(realm_id, db, logger, request)
+
+        response = request.getAuctionData(realm, operation)
+        self.assertEqual(list, type(response))
 
 
-    @unittest.skip
     def test_getItemData(self):
-        pass
+        item_id = 37
+        response = request.getItemData(item_id)
+
+        self.assertEqual(dict, type(response))
+        self.assertEqual(True, "id" in response)
+        self.assertEqual(True, "name" in response)
+        self.assertEqual(item_id, response["id"])
+        self.assertEqual("Worn Axe", response["name"])
 
 
-    @unittest.skip
+
     def test_getClassData(self):
-        pass
+        class_id = 0
+        response = request.getClassData(class_id)
 
-    @unittest.skip
-    def test_getClassIndex(self):
-        pass
+        self.assertEqual(dict, type(response))
+        self.assertEqual(True, "class_id" in response)
+        self.assertEqual(True, "name" in response)
+        self.assertEqual(class_id, response["class_id"])
+        self.assertEqual("Consumable", response["name"])
 
-    @unittest.skip
+
+    def test_getClassesIndex(self):
+        response = request.getClassesIndex()
+
+        self.assertEqual(list, type(response))
+        self.assertEqual(17, len(response))
+
+
     def test_getSubClassData(self):
-        pass
+        class_id = 0
+        subclass_id = 0
+        response = request.getSubclassData(class_id, subclass_id)
 
-    @unittest.skip
+        self.assertEqual(dict, type(response))
+        self.assertEqual(True, "display_name" in response)
+        self.assertEqual(True, "class_id" in response)
+        self.assertEqual(True, "subclass_id" in response)
+        self.assertEqual("Explosives and Devices", response["display_name"])
+        self.assertEqual(class_id, response["class_id"])
+        self.assertEqual(subclass_id, response["subclass_id"])
+
+
     def test_getPetData(self):
-        pass
+        pet_id = 39
+        response = request.getPetData(pet_id)
 
-    @unittest.skip
+        self.assertEqual(dict, type(response))
+        self.assertEqual(True, "id" in response)
+        self.assertEqual(True, "name" in response)
+        self.assertEqual(pet_id, response["id"])
+        self.assertEqual("Mechanical Squirrel", response["name"])
+
+
     def test_getMountData(self):
-        pass
+        mount_id = 985
+        response = request.getMountData(mount_id)
 
-    @unittest.skip
+        self.assertEqual(dict, type(response))
+        self.assertEqual(True, "id" in response)
+        self.assertEqual(True, "name" in response)
+        self.assertEqual(mount_id, response["id"])
+        self.assertEqual("Avenging Felcrusher", response["name"])
+
+
+
     def test_getMount_id_by_name(self):
-        pass
+        mount_name = "Avenging Felcrusher"
+        response = request.getMount_id_by_name(mount_name)
 
-    @unittest.skip
+        self.assertEqual(985, response)
+
+
     def test_getMountsIndex(self):
-        pass
+        response = request.getMountsIndex()
 
-    @unittest.skip
+        self.assertEqual(list, type(response))
+        self.assertEqual("Brown Horse", response[0]["name"])
+        self.assertEqual(6, response[0]["id"])
+
+
     def test_getPetsIndex(self):
-        pass
+        response = request.getPetsIndex()
+
+        self.assertEqual(list, type(response))
+        self.assertEqual("Mechanical Squirrel", response[0]["name"])
+        self.assertEqual(39, response[0]["id"])
 
 
     def test_getRealmData(self):
@@ -100,29 +153,15 @@ class RequestTest(unittest.TestCase):
         self.assertEqual("scarshield-legion", data["slug"])
 
 
-    @unittest.skip
+
     def test_getRealms(self):
-        pass
+        response = request.getRealms()
 
-    @unittest.skip
-    def test_reconnect(self):
-        pass
+        self.assertEqual(list, type(response))
+        self.assertEqual(267, len(response))
+        self.assertEqual("Aggramar", response[0]["data"]["name"]["en_GB"])
+        self.assertEqual(500, response[0]["data"]["id"])
 
-    @unittest.skip
-    def test_waitTillResponsive(self):
-        pass
-
-    @unittest.skip
-    def test_handleResponse(self):
-        pass
-
-    @unittest.skip
-    def test_travelResponse(self):
-        pass
-
-    @unittest.skip
-    def test_searchResponse(self):
-        pass
 
 
 if __name__ == "__main__":

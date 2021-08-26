@@ -160,13 +160,20 @@ class Request():
         endpoint = "search/mount"
         extra = "&name.en_US={}&orderby=id&_page=1".format(name.replace(" ", "%20"))
 
-        try: response = requests.get(self.endpoint.format(endpoint, "static", extra))
+        try:
+            response = requests.get(self.endpoint.format(endpoint, "static", extra))
         except requests.exceptions.ConnectionError:
             return self.reconnect(self.getMount_id_by_name, (name,))
 
-        _id = self.handleResponse(response, self.getMount_id_by_name, (name,), ('results', 0, 'data', 'id'))
+        results = self.handleResponse(response, self.getMount_id_by_name, (name,), ('results',))
 
-        return _id
+        for option in results:
+            mount_name = option["data"]["name"]["en_GB"]
+            mount_id = option["data"]["id"]
+
+            if mount_name == name: return mount_id
+
+        return
 
 
     def getMountsIndex(self):
@@ -224,6 +231,22 @@ class Request():
             result += self.handleResponse(response, self.getRealms, None, ("results",))
 
         return result
+
+
+
+    def getRegionRealms(self):
+        """
+            Method to extract all main realms from a certain region.
+        """
+        result = []
+        realms = self.getRealms()
+
+        for realm in realms:
+            _id = realm["id"]
+            pass
+            # create realm
+            # check realm for auction data
+            # add realm if auction data exists
 
 
     def reconnect(self, func, args):
@@ -286,7 +309,7 @@ class Request():
             return data
 
         for key in keys:
-            if key not in data:
+            if type(data) == dict and key not in data:
                 return False
             data = data[key]
 
@@ -294,16 +317,18 @@ class Request():
 
 
 
-    def searchResponse(self, response, func, args, condition, keys):
+    def searchResponse(self, response, func, args, condition, keys, search_key=None):
+        """
+            Method to extract a certain block of information from the response
+            if the block of information meets the condition set.
         """
 
-        """
         arg = condition[0]
         check = condition[1]
 
         data = self.handleResponse(response, func, args, keys)
 
-        if not data: return data
+        if not data: return None
 
         for x in data:
             if x[arg] == check: return x

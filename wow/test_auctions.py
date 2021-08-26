@@ -4,6 +4,12 @@ import unittest
 class AuctionTest(unittest.TestCase):
 
     @staticmethod
+    def init():
+        auction = None
+        return auction
+
+
+    @unittest.skip
     def test_init(self):
 
         # testing rebuilding auction
@@ -46,14 +52,14 @@ class AuctionTest(unittest.TestCase):
 
 
 
-
+    @unittest.skip
     def test_insert(self):
 
 
         self.assertEqual(1, len(insert_data["auctions"][auction.realm.id]))
         self.assertEqual(True, auction in insert_data["auctions"][auction.realm.id])
 
-
+    @unittest.skip
     def test_update(self):
         pass
 
@@ -61,19 +67,29 @@ class AuctionTest(unittest.TestCase):
 
 class SoldAuctionTest(unittest.TestCase):
 
+    @staticmethod
+    def init():
+        soldauction = None
+        return soldauction
+
+
+    @unittest.skip
     def test_init(self):
         pass
 
 
+    @unittest.skip
     def test_insert(self):
         pass
 
 
+    @unittest.skip
     def test_isValidSoldAuction(self):
         pass
 
 
 
 if __name__ == "__main__":
-    AuctionTest.init()
+    auction = AuctionTest.init()
+    soldauction = SoldAuctionTest.init()
     unittest.main()

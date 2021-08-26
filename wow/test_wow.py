@@ -8,8 +8,15 @@ from logger.Logger import Logger
 
 class Testcase(unittest.TestCase):
 
+
+    @staticmethod
+    def init():
+        pass
+
+
+    @unittest.skip
     def test_setup(self):
-        operation, request = setup(True)
+        operation, request = setup(test=True)
         logger = operation.logger
         items = operation.database.getAmountItems()
         pets = operation.database.getAmountPets()
@@ -70,4 +77,5 @@ class Testcase(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    Testcase.init()
     unittest.main()
