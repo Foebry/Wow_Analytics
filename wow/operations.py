@@ -10,9 +10,9 @@ class Operation:
     def __init__(self, db, logger):
         self.database = db
         self.logger = logger
-        self.insert_data = {}
+        self.live_data = {"items":{82800:{}}, "classes":{}, "pets":{}, "mounts":{}}
+        self.insert_data = {"items":[], "classes":[], "subclasses":[], "pets":[], "mounts":[], "item_prices":[]}
         self.update_data = {}
-        self.live_data = {}
         self.realms = []
 
 
@@ -170,9 +170,9 @@ class Operation:
         insert_items_query = insert_items_query[:-4] + ";"
 
         good_section = self.database.write(insert_items_query)
-        if not good_section: return self.createInsertItemsQuery((start, floor(begin+remaining/2)))
+        if not good_section: return self.createInsertItemsQuery((begin, floor(begin+remaining/2)))
 
-        if end > items: return self.createInsertItemsQuery((end, next))
+        if end < items: return self.createInsertItemsQuery((end, next))
 
         return self.logger.log(msg=f"Inserted {items} items" )
 
@@ -256,10 +256,10 @@ class Operation:
         remaining = end - begin
         pets = len(self.insert_data["pets"])
 
-        insert_pets_query = "INSERT INTO pets(ID, name, type, source) VALUES \n "
+        insert_pets_query = "INSERT INTO pets(ID, name, type, source, faction) VALUES \n "
 
         for pet in self.insert_data["pets"]:
-            pet_values = "(%s, %s, %s, %s), \n  "%(pet.id, f'"{pet.name}"', f'"{pet.type}"', f'"{pet.source}"')
+            pet_values = "(%s, %s, %s, %s, %s), \n  "%(pet.id, f'"{pet.name}"', f'"{pet.type}"', f'"{pet.source}"', f'"{pet.faction}"')
             insert_pets_query += pet_values
 
         insert_pets_query = insert_pets_query[:-5] + ";"
@@ -294,7 +294,7 @@ class Operation:
 
         insert_classes_query = insert_classes_query[:-3] + ";"
 
-        good_section = self.database.write(insert_pets_query)
+        good_section = self.database.write(insert_classes_query)
         if not good_section: return self.createInsertClassesQuery((begin, floor(begin+remaining/2)))
 
         if end < classes: return self.createInsertClassesQuery((end, next))
@@ -325,7 +325,7 @@ class Operation:
 
         insert_subclass_query = insert_subclass_query[:-4] + ";"
 
-        good_section = self.database.write(insert_subclass_query, logger)
+        good_section = self.database.write(insert_subclass_query)
         if not good_section: return self.createInsertSubclassesQuery((begin, floor(begin+remaining/2)))
 
         if end < subclasses: return self.createInsertSubclassesQuery((end, next))
@@ -663,49 +663,22 @@ class Operation:
 
 
 
-def setTimePosted(posted=None, test=False):
-    now = datetime.datetime.now()
-    year = now.year
-    month = now.month
-    day = now.day
-    hour = now.hour
-    minute_posted = 0
-    second_posted = 0
-    microsecond_posted = 0
+def setTimePosted(test=False):
     if test:
+        today = datetime.datetime.now()
         hour = 12
         minute = 30
         second = 30
         micro = 500000
-    elif posted:
-        time_posted = posted
-        minute_posted = time_posted.minute
-        second_posted = time_posted.second
-        microsecond_posted = time_posted.microsecond
-        minute = random.randrange(max(minute_posted, 45), 60)
-        second = random.randrange(max(second_posted, 45), 60)
-        micro = random.randrange(max(microsecond_posted, 9999999), 1000000)
-    else:
-        minute = random.randrange(now.minute, 60)
-        second = random.randrange(now.second, 60)
-        micro = random.randrange(now.microsecond, 1000000)
+        return datetime.datetime(today.year, today.month, today.day, hour, minute, second, micro)
 
-    time_posted = datetime.datetime(year, month, day, hour, minute, second, micro)
-    return time_posted
+    return datetime.datetime.now()
 
 
-def setTimeSold(posted=None):
-    now = datetime.datetime.now()
-    year = now.year
-    month = now.month
-    day = now.day
-    hour = now.hour
-    if posted: minute_posted = posted.minute
-    else: minute_posted = 0
-    minute = random.randrange(max(minute_posted, now.minute+1), 60)
-    second = random.randrange(0, now.second + 1)
-    micro = random.randrange(0, 1000000)
+def setTimeSold(posted):
 
-    time_sold = datetime.datetime(year, month, day, hour, minute, second, micro) - datetime.timedelta(hours=1)
+    now = datetime.datetime.now() - datetime.timedelta(hours=1)
+    diff_us = (now - posted).total_seconds()*1000000
+    time_sold = posted + datetime.timedelta(microseconds=random.randrange(diff_us))
 
     return time_sold
