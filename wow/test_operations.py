@@ -1,5 +1,6 @@
 import unittest
 import os
+import datetime
 
 from databases.Database import Database
 from logger.Logger import Logger
@@ -7,6 +8,7 @@ from config import DATABASE, CREDENTIALS
 from Requests import Request
 from operations import Operation
 from realms import Realm
+from datetime import datetime as dt
 
 class OperationTest(unittest.TestCase):
 
@@ -17,7 +19,6 @@ class OperationTest(unittest.TestCase):
         from classes import Class, Subclass
         from items import Item
         from auctions import Auction, SoldAuction
-        from datetime import datetime
 
 
         if section == "insert":
@@ -26,21 +27,20 @@ class OperationTest(unittest.TestCase):
             [Mount(operation, request, _id) for _id in (69, 85)]
             [Pet(operation, request, _id) for _id in (39, 40)]
 
-            time = datetime.now()
-            auction_1 = Auction(realm, operation, request, False, *(realm, 10569, 25, {"_id":0}, 1, 52, "SHORT", 24.9, 52, time, time))
-            time = datetime.now()
-            auction_2 = Auction(realm, operation, request, False, *(realm, 10570, 35, {"_id":0}, 1, 68, "MEDIUM", 62.5, 68, time, time))
+            auction_1 = Auction(realm, operation, request, False, *(realm, 10569, 25, {"_id":0}, 1, 52, "SHORT", 24.9, 52))
+            auction_2 = Auction(realm, operation, request, False, *(realm, 10570, 35, {"_id":0}, 1, 68, "MEDIUM", 62.5, 68))
+            auction_2.time_posted = auction_2.time_posted - datetime.timedelta(hours=1)
+            auction_2.last_updated = auction_2.time_posted
 
             operation.insert_data["auctions"][realm.id] = [auction_1, auction_2]
             operation.live_data["auctions"][realm.id] = {10569:auction_1, 10570:auction_2}
 
-            time = datetime.now()
             sold_auction = SoldAuction(operation, *(auction_2, 10570, 35, {"id":0}, 1, 68, "MEDIUM", 62.5, 68, auction_2.time_posted, False))
             operation.insert_data["sold_auctions"][realm.id] = [sold_auction]
 
         elif section == "update":
             operation.update_data = {"auctions":{}}
-            time = datetime.now()
+            time = dt.now()
             item = operation.live_data["items"][25]
             auction = operation.live_data["auctions"][realm.id][10569]
             auction.last_updated = time
@@ -267,7 +267,6 @@ class OperationTest(unittest.TestCase):
 
     def test_setTimePosted(self):
         from operations import setTimePosted
-        from datetime import datetime
 
         #testing test case
         test_time = setTimePosted(test=True)
@@ -277,7 +276,7 @@ class OperationTest(unittest.TestCase):
         self.assertEqual(500000, test_time.microsecond)
 
         # testing not testcase
-        now = datetime.now()
+        now = dt.now()
         time = setTimePosted()
         self.assertEqual(now.hour, time.hour)
 
