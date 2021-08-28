@@ -9,7 +9,7 @@ class Class:
         insert_new_class = kwargs and operation is not None
         test_new_class = test
         new_class = not kwargs and operation is not None
-        rebuild_class = kwargs and not operation
+        rebuild_class = kwargs and not operation and _id
 
         self.id = _id
 
@@ -62,7 +62,7 @@ class Subclass():
 
         if test_new_subclass: self.kwargs = self.setData(operation, request, test)
 
-        elif new_subclass: self.setData(operation, request)
+        elif new_subclass: self.setData(operation, request, test)
 
         elif insert_new_subclass or rebuild_subclass:
             self.name = kwargs["name"]
