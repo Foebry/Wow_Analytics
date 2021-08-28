@@ -20,14 +20,14 @@ class Operation:
     def createInsertAuctionsQuery(self, section, realm):
         from math import floor
 
-        print(" "*100, end="\r")
-        print("inserting auctions {} - {}".format(section[0], section[1]), end="\r")
-
         begin = section[0]
         end = section[1]
         next = end + self.database.restraint
         remaining = end - begin
         auctions = len(self.insert_data["auctions"][realm.id])
+
+        print(" "*100, end="\r")
+        print("inserting auctions {} - {}".format(section[0], min(section[1], auctions)), end="\r")
 
         auctions_query = "INSERT into auctionhouses(realm_id, auction_id, item_id, pet_id, quantity, unit_price, time_left, bid, buyout, time_posted, last_updated) values\n"
 
@@ -52,14 +52,15 @@ class Operation:
 
     def createUpdateAuctionsQuery(self, section, realm):
         from math import floor
-        print(" "*100, end="\r")
-        print("updating auctions {} - {}".format(section[0], section[1]), end="\r")
 
         begin = section[0]
         end = section[1]
         next = end +self.database.restraint
         remaining = end - begin
         auctions = len(self.update_data["auctions"][realm.id])
+
+        print(" "*100, end="\r")
+        print("updating auctions {} - {}".format(section[0], min(section[1], auctions)), end="\r")
 
         update_query = "UPDATE auctionhouses \n"
         update_quantity = "SET\n    quantity = CASE auction_id \n"
@@ -100,14 +101,14 @@ class Operation:
     def createSoldauctionsQuery(self, section, realm):
         from math import floor
 
-        print(" "*100, end="\r")
-        print("inserting soldauctions {} - {}".format(section[0], section[1]), end="\r")
-
         begin = section[0]
         end = section[1]
         next = end + self.database.restraint
         remaining = end - begin
         len_sold_auctions = len(self.insert_data["sold_auctions"][realm.id])
+
+        print(" "*100, end="\r")
+        print("inserting soldauctions {} - {}".format(section[0], min(section[1], len_sold_auctions)), end="\r")
 
 
         sold_auctions_query = "INSERT into soldauctions(realm_id, auction_id, item_id, pet_id, quantity, unit_price, time_left, bid, buyout, time_sold, partial) values\n"
@@ -141,6 +142,9 @@ class Operation:
         next = end + self.database.restraint
         remaining = end - begin
         items = len(self.insert_data["items"])
+
+        print(" "*100, end="\r")
+        print("inserting items {} - {}".format(section[0], min(section[1], items)), end="\r")
 
         insert_items_query = "INSERT INTO items(id, pet_id, mount_id, level, name, quality, class_id, subclass_id, type, subtype, mean_price) VALUES \n  "
 
@@ -181,9 +185,6 @@ class Operation:
     def createUpdateItemsQuery(self, section):
         from math import floor
 
-        print(" "*100, end="\r")
-        print("updateing items {} - {}".format(section[0], section[1]), end="\r")
-
         begin = section[0]
         end = section[1]
         next = end + self.database.restraint
@@ -192,6 +193,9 @@ class Operation:
 
         remaining = end - begin
         items = len(self.update_data["items"])
+
+        print(" "*100, end="\r")
+        print("updateing items {} - {}".format(section[0], min(section[1], items)), end="\r")
 
         update_query = "UPDATE items \n SET mean_price = CASE \n"
         where = "where id in ("
@@ -216,15 +220,15 @@ class Operation:
     def createInsertMountsQuery(self, section):
         from math import floor
 
-        print(" "*100, end="\r")
-        print("inserting mounts {} - {}".format(section[0], section[1]), end="\r")
-
         begin = section[0]
         end = section[1]
         next = end + self.database.restraint
 
         remaining = end - begin
         mounts = len(self.insert_data["mounts"])
+
+        print(" "*100, end="\r")
+        print("inserting mounts {} - {}".format(section[0], min(section[1], mounts)), end="\r")
 
         insert_mounts_query = "INSERT INTO mounts(id, name, source, faction) VALUES \n  "
 
@@ -246,15 +250,15 @@ class Operation:
     def createInsertPetsQuery(self, section):
         from math import floor
 
-        print(" "*100, end="\r")
-        print("inserting pets {} - {}".format(section[0], section[1]), end="\r")
-
         begin = section[0]
         end = section[1]
         next = end + self.database.restraint
 
         remaining = end - begin
         pets = len(self.insert_data["pets"])
+
+        print(" "*100, end="\r")
+        print("inserting pets {} - {}".format(section[0], min(section[1], pets)), end="\r")
 
         insert_pets_query = "INSERT INTO pets(ID, name, type, source, faction) VALUES \n "
 
@@ -276,15 +280,15 @@ class Operation:
     def createInsertClassesQuery(self, section):
         from math import floor
 
-        print(" "*100, end="\r")
-        print("inserting classes {} - {}".format(section[0], section[1]), end="\r")
-
         begin = section[0]
         end = section[1]
         next = end + self.database.restraint
 
         remaining = end - begin
         classes = len(self.insert_data["classes"])
+
+        print(" "*100, end="\r")
+        print("inserting classes {} - {}".format(section[0], min(section[1], classes)), end="\r")
 
         insert_classes_query = "INSERT INTO classes(id, name) VALUES \n "
 
@@ -306,15 +310,15 @@ class Operation:
     def createInsertSubclassesQuery(self, section):
         from math import floor
 
-        print(" "*100, end="\r")
-        print("insertsubclasses {} - {}".format(section[0], section[1]), end="\r")
-
         begin = section[0]
         end = section[1]
         next = end + self.database.restraint
 
         remaining = end - begin
         subclasses = len(self.insert_data["subclasses"])
+
+        print(" "*100, end="\r")
+        print("insertsubclasses {} - {}".format(section[0], min(section[1], subclasses)), end="\r")
 
 
         insert_subclass_query = "INSERT INTO subclasses(Class_id, id, name) VALUES\n    "

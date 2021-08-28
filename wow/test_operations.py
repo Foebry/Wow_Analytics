@@ -289,15 +289,9 @@ class OperationTest(unittest.TestCase):
 
 
 
-def reset():
-    db.clearAll()
-
-
-
 if __name__ == "__main__":
     logger = Logger(os.getcwd())
     db = Database(DATABASE, logger, test=True)
-    reset()
     operation = Operation(db, logger)
     request = Request(CREDENTIALS, db, logger)
     realm = Realm(1096, db, logger, request)
