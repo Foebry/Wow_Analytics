@@ -38,16 +38,11 @@ def setup(test=False):
     logger.log(msg="*"*150, timestamped=False, level_display=False)
 
     db = Database(DATABASE, logger, test)
-
     request = Request(CREDENTIALS, db, logger)
-
     operation = Operation(db, logger)
-    operation.live_data = {"items":{82800:{}}, "classes":{}, "pets":{}, "mounts":{}}
-    operation.insert_data = {"items":[], "classes":[], "subclasses":[], "pets":[], "mounts":[], "item_prices":[]}
-    operation.update_data = {}
 
     for realm_id in REALMS:
-        realm = Realm(realm_id, REALMS[realm_id], db, logger)
+        realm = Realm(realm_id, db, logger, request)
         operation.realms.append(realm)
 
     operation.setLiveData(request)

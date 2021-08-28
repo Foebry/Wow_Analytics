@@ -1,9 +1,12 @@
 import unittest
+import time
 
-from wow import setup
+from wow import setup, wait
 from operations import Operation
 from Requests import Request
 from logger.Logger import Logger
+
+print("test_wow")
 
 
 class Testcase(unittest.TestCase):
@@ -14,7 +17,6 @@ class Testcase(unittest.TestCase):
         pass
 
 
-    @unittest.skip
     def test_setup(self):
         operation, request = setup(test=True)
         logger = operation.logger
@@ -40,7 +42,7 @@ class Testcase(unittest.TestCase):
         self.assertEqual(True, "classes" in operation.live_data.keys())
         self.assertEqual(True, "pets" in operation.live_data.keys())
         self.assertEqual(True, "mounts" in operation.live_data.keys())
-        self.assertEqual(True, 82800 in operation.live_data["items"])
+        self.assertEqual(False, 82800 in operation.live_data["items"])
         self.assertEqual(dict, type(operation.live_data["items"]))
         self.assertEqual(dict, type(operation.live_data["classes"]))
         self.assertEqual(dict, type(operation.live_data["pets"]))
@@ -76,6 +78,17 @@ class Testcase(unittest.TestCase):
         self.assertEqual(dict, type(operation.update_data))
 
 
+    def test_wait(self):
+        start = time.time()
+        sleep_duration = 5
+
+        wait(sleep_duration)
+
+        end = time.time()
+
+        self.assertEqual(5, int(end-start))
+
+
+
 if __name__ == "__main__":
-    Testcase.init()
     unittest.main()
