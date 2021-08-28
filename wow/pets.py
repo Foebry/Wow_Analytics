@@ -11,7 +11,7 @@ class Pet:
         insert_new_pet = kwargs and operation is not None
         test_new_pet = test
         new_pet = not kwargs and operation is not None
-        rebuild_pet = kwargs and not operation
+        rebuild_pet = kwargs and not operation and _id
 
         self.id = _id
 
