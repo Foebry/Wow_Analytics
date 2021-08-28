@@ -11,8 +11,7 @@ class Mount:
         new_mount = not kwargs and operation is not None and _id
         rebuild_mount = kwargs and not operation and _id
 
-        if _id:
-            self.id = _id
+        if _id: self.id = _id
 
         if test_new_mount: self.kwargs = self.setData(operation, request, test)
 
