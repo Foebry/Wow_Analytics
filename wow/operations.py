@@ -682,7 +682,7 @@ def setTimePosted(test=False):
 def setTimeSold(posted):
 
     now = datetime.datetime.now() - datetime.timedelta(hours=1)
-    diff_us = (now - posted).total_seconds()*1000000
+    diff_us = int((now - posted).total_seconds()*1000000)
     time_sold = posted + datetime.timedelta(microseconds=random.randrange(diff_us))
 
     return time_sold

@@ -130,7 +130,6 @@ class Item:
                 data["pet"] = {"_id":pet_data["_id"]}
                 data["quality"] = qualities[pet_data["quality"]]
                 data["level"] = pet_data["level"]
-                data["name"] = request.getPetData(pet_data["_id"])["name"]
 
             elif is_mount:
                 data["mount"] = {"_id":request.getMount_id_by_name(data["name"])}
