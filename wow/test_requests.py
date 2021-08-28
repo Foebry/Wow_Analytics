@@ -1,6 +1,8 @@
 import unittest
 import os
 
+print("test_requests")
+
 
 class RequestTest(unittest.TestCase):
 

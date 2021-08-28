@@ -94,8 +94,6 @@ class Realm:
 
             quantity = auction["quantity"]
             time_left = auction["time_left"]
-            time_posted = setTimePosted()
-            last_updated = time_posted
 
             # all are given
             if "unit_price" in auction and "bid" in auction and "buyout" in auction:
@@ -139,7 +137,7 @@ class Realm:
                 unit_price = bid / quantity
                 buyout = -1
 
-            args = (self, auction_id, item_id, pet, quantity, unit_price, time_left, bid, buyout, time_posted, last_updated)
+            args = (auction_id, item_id, pet, quantity, unit_price, time_left, bid, buyout)
             auction = Auction(self, operation, request, test, *args)
 
             print("{}/{} auctions handled".format(len(auction_data), len(response)), end='\r')

@@ -8,6 +8,8 @@ from databases.Database import Database
 from config import DATABASE, CREDENTIALS
 from realms import Realm
 
+print("test_items")
+
 
 class ItemTest(unittest.TestCase):
 
@@ -280,9 +282,9 @@ class ItemTest(unittest.TestCase):
         operation.live_data["auctions"][realm.id] = {}
         buyout = 50
 
-        auction_item = Auction(realm, operation, request, False, *(realm, 1, 25, {"_id":0}, 1, buyout, "LONG", 45, buyout))
-        auction_pet = Auction(realm, operation, request, False, *(realm, 2, 82800, {"_id":39, "quality":3, "level":1, "breed_id":5}, 2, buyout, "MEDIUM", 45, buyout*2))
-        auction_mount = Auction(realm, operation, request, False, *(realm, 3, 34060, {"_id":0}, 3, buyout, "SHORT", 45, buyout*3))
+        auction_item = Auction(realm, operation, request, False, *(1, 25, {"_id":0}, 1, buyout, "LONG", 45, buyout))
+        auction_pet = Auction(realm, operation, request, False, *(2, 82800, {"_id":39, "quality":3, "level":1, "breed_id":5}, 2, buyout, "MEDIUM", 45, buyout*2))
+        auction_mount = Auction(realm, operation, request, False, *(3, 34060, {"_id":0}, 3, buyout, "SHORT", 45, buyout*3))
 
         auction_item.time_posted -= timedelta(hours=1)
         auction_pet.time_posted -= timedelta(hours=1)
@@ -291,9 +293,9 @@ class ItemTest(unittest.TestCase):
         auction_pet.last_updated = auction_pet.time_posted
         auction_mount.last_updated = auction_mount.time_posted
 
-        sold_auction_item = SoldAuction(operation, *(auction_item, 1, 25, 0, 1, buyout, "LONG", 45, buyout, auction_item.time_posted, False))
-        sold_auction_pet = SoldAuction(operation, *(auction_pet, 2, 82800, 39, 2, buyout*2, "MEDIUM", 45, buyout*2, auction_pet.time_posted, False))
-        sold_auction_mount = SoldAuction(operation, *(auction_mount, 3, 34060, 0, 3, buyout*3, "SHORT", 45, buyout*3, auction_mount.time_posted, False))
+        sold_auction_item = SoldAuction(operation, False, *(auction_item, 1, 25, 0, 1, buyout, "LONG", 45, buyout, auction_item.time_posted, False))
+        sold_auction_pet = SoldAuction(operation, False, *(auction_pet, 2, 82800, 39, 2, buyout*2, "MEDIUM", 45, buyout*2, auction_pet.time_posted, False))
+        sold_auction_mount = SoldAuction(operation, False, *(auction_mount, 3, 34060, 0, 3, buyout*3, "SHORT", 45, buyout*3, auction_mount.time_posted, False))
 
         item_item = new_items[0]
         item_pet = new_items[1]

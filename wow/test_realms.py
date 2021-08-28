@@ -3,6 +3,8 @@ import os
 
 from realms import *
 
+print("test_realms")
+
 
 class RealmTest(unittest.TestCase):
 

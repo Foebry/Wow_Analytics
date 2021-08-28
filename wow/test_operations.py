@@ -10,6 +10,8 @@ from operations import Operation
 from realms import Realm
 from datetime import datetime as dt
 
+print("test_operations")
+
 class OperationTest(unittest.TestCase):
 
     @staticmethod
@@ -27,15 +29,15 @@ class OperationTest(unittest.TestCase):
             [Mount(operation, request, _id) for _id in (69, 85)]
             [Pet(operation, request, _id) for _id in (39, 40)]
 
-            auction_1 = Auction(realm, operation, request, False, *(realm, 10569, 25, {"_id":0}, 1, 52, "SHORT", 24.9, 52))
-            auction_2 = Auction(realm, operation, request, False, *(realm, 10570, 35, {"_id":0}, 1, 68, "MEDIUM", 62.5, 68))
+            auction_1 = Auction(realm, operation, request, False, *(10569, 25, {"_id":0}, 1, 52, "SHORT", 24.9, 52))
+            auction_2 = Auction(realm, operation, request, False, *(10570, 35, {"_id":0}, 1, 68, "MEDIUM", 62.5, 68))
             auction_2.time_posted = auction_2.time_posted - datetime.timedelta(hours=1)
             auction_2.last_updated = auction_2.time_posted
 
             operation.insert_data["auctions"][realm.id] = [auction_1, auction_2]
             operation.live_data["auctions"][realm.id] = {10569:auction_1, 10570:auction_2}
 
-            sold_auction = SoldAuction(operation, *(auction_2, 10570, 35, {"id":0}, 1, 68, "MEDIUM", 62.5, 68, auction_2.time_posted, False))
+            sold_auction = SoldAuction(operation, False, *(auction_2, 10570, 35, {"id":0}, 1, 68, "MEDIUM", 62.5, 68, auction_2.time_posted, False))
             operation.insert_data["sold_auctions"][realm.id] = [sold_auction]
 
         elif section == "update":
@@ -250,19 +252,21 @@ class OperationTest(unittest.TestCase):
         self.assertEqual(68, items[35].mean_price)
 
         # testing auctions
-        auctions = operation.live_data["auctions"][realm.id]
+        auctions = realm.auctions
+        previous_auctions = realm.previous_auctions
+
         self.assertEqual(1, len(auctions))
+        self.assertEqual(1, len(previous_auctions))
         self.assertEqual(True, 10569 in auctions)
+        self.assertEqual(True, 10569 in previous_auctions)
         self.assertEqual("Worn Shortsword", auctions[10569].Item.name)
-
-
+        self.assertEqual("Worn Shortsword", previous_auctions[10569].Item.name)
 
 
     def test_update(self):
         operation.update()
         self.assertEqual({}, operation.insert_data)
         self.assertEqual({}, operation.update_data)
-
 
 
     def test_setTimePosted(self):

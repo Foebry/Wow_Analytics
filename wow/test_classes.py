@@ -7,6 +7,8 @@ from logger.Logger import Logger
 from databases.Database import Database
 from config import DATABASE, CREDENTIALS
 
+print("test_classes")
+
 
 class ClassTest(unittest.TestCase):
 

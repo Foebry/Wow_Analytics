@@ -1,6 +1,8 @@
 import unittest
 import os
 
+print("test_mounts")
+
 
 class MountTest(unittest.TestCase):
 
