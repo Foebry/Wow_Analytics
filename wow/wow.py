@@ -7,20 +7,6 @@ import argparse
 
 
 
-def testcases():
-    os.system("py test_requests.py")
-    os.system("py test_operations.py")
-    os.system("py test_realms.py")
-    os.system("py test_pets.py")
-    os.system("py test_mounts.py")
-    os.system("py test_classes.py")
-    os.system("py test_items.py")
-    os.system("py test_auctions.py")
-    os.system("py test_wow.py")
-    quit()
-
-
-
 def setup(test=False):
     from databases.Database import Database
     from logger.Logger import Logger
@@ -90,9 +76,8 @@ def main():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--tests", dest="testcase", action="store_true")
+    parser.add_argument("--test", dest="test", action="store_true")
     args = parser.parse_args()
-    if args.testcase: testcases()
-    operation, request = setup()
+    operation, request = setup(args.test)
 
     main()

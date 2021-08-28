@@ -58,7 +58,7 @@ class OperationTest(unittest.TestCase):
         self.assertEqual(logger, operation.logger)
         self.assertEqual({"items":[], "classes":[], "subclasses":[], "pets":[], "mounts":[], "item_prices":[]}, operation.insert_data)
         self.assertEqual({}, operation.update_data)
-        self.assertEqual({"items":{82800:{}}, "classes":{}, "pets":{}, "mounts":{}}, operation.live_data)
+        self.assertEqual({"items":{}, "classes":{}, "pets":{}, "mounts":{}}, operation.live_data)
         self.assertEqual([], operation.realms)
 
 

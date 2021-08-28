@@ -1,12 +1,25 @@
 import unittest
 import time
+import os
 
 from wow import setup, wait
 from operations import Operation
 from Requests import Request
 from logger.Logger import Logger
 
-print("test_wow")
+
+
+def testcases():
+    os.system("py test_requests.py")
+    os.system("py test_operations.py")
+    os.system("py test_realms.py")
+    os.system("py test_pets.py")
+    os.system("py test_mounts.py")
+    os.system("py test_classes.py")
+    os.system("py test_items.py")
+    os.system("py test_auctions.py")
+    print("test_wow")
+
 
 
 class Testcase(unittest.TestCase):
@@ -91,4 +104,5 @@ class Testcase(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    testcases()
     unittest.main()

@@ -630,11 +630,13 @@ class Operation:
                 with concurrent.futures.ThreadPoolExecutor() as exe:
                     [exe.submit(self.setLiveItem, item) for item in data]
             except Exception as e: print(e)
-        items = len(self.live_data["items"]) - 1
+        items = len(self.live_data["items"])
         pets = 0
-        if 82800 in self.live_data["items"]: pets = len(self.live_data["items"][82800])
+        if 82800 in self.live_data["items"]:
+            pets = len(self.live_data["items"][82800])
+            items -= 1
         total_items = items + pets
-        msg = "Done setting live items; {} live items of which {} items and {} pets".format(total_items, items-1, pets)
+        msg = "Done setting live items; {} live items of which {} items and {} pets".format(total_items, items, pets)
         self.logger.log(msg=msg)
 
         # set auctions
