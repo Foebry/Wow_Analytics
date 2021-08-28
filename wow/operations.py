@@ -10,7 +10,7 @@ class Operation:
     def __init__(self, db, logger):
         self.database = db
         self.logger = logger
-        self.live_data = {"items":{82800:{}}, "classes":{}, "pets":{}, "mounts":{}}
+        self.live_data = {"items":{}, "classes":{}, "pets":{}, "mounts":{}}
         self.insert_data = {"items":[], "classes":[], "subclasses":[], "pets":[], "mounts":[], "item_prices":[]}
         self.update_data = {}
         self.realms = []
@@ -631,7 +631,8 @@ class Operation:
                     [exe.submit(self.setLiveItem, item) for item in data]
             except Exception as e: print(e)
         items = len(self.live_data["items"]) - 1
-        pets = len(self.live_data["items"][82800])
+        pets = 0
+        if 82800 in self.live_data["items"]: pets = len(self.live_data["items"][82800])
         total_items = items + pets
         msg = "Done setting live items; {} live items of which {} items and {} pets".format(total_items, items-1, pets)
         self.logger.log(msg=msg)
