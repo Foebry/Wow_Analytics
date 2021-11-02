@@ -3,6 +3,7 @@ __pycache__
 /Logs/*
 *.log
 /.idea/*
+.idea/*
 /config.ini
 *_test.py
 /tests/
