@@ -1,0 +1,26 @@
+{
+  "DATABASE": {
+    "host": "192.168.0.163",
+    "user": "server",
+    "password": "Sander",
+    "schema": "wow",
+    "schema-test": "test",
+    "restraint": 1000,
+    "type": "MySQL"
+  },
+  "APP":{
+    "security": "oauth",
+    "oauth-endpoint": "https://us.battle.net/oauth/token",
+    "oauth-request-data": "access_token",
+    "endpoint": "https://eu.api.blizzard.com/data/wow/{}?namespace={}-eu&locale=en_GB{}&access_token={token}",
+    "CREDENTIALS": {
+      "grant_type":"client_credentials",
+      "client_id": "2d145be238fc4068a18cd9a2cb7473eb",
+      "client_secret": "m6eqhka7BWQxVJc9dYn2cO70zLYHE2uo"
+    },
+    "REALMS": [
+      1096,
+      "REGION"
+      ]
+    }
+  }

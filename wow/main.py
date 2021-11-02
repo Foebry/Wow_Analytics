@@ -1,39 +1,30 @@
 """main program functionality"""
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import concurrent.futures
 import os
 import argparse
+import json
 
 
 
 def setup(test=False):
-    from databases.Database import Database
-    from logger.Logger import Logger
     from realms import Realm
-    from config import REALMS, DATABASE
-    from operations import Operation
-    from Requests import Request
-    from config import CREDENTIALS
 
-    logger = Logger(os.getcwd(), "d")
+    app.logger = Logger(os.getcwd(), "d")
 
-    logger.log(msg="\n"*3, timestamped=False, level_display=False)
-    logger.log(msg="*"*150, timestamped=False, level_display=False)
-    logger.log(msg="*"*65+"Started new session!"+"*"*65, timestamped=False, level_display=False)
-    logger.log(msg="*"*150, timestamped=False, level_display=False)
-
-    db = Database(DATABASE, logger, test)
-    request = Request(CREDENTIALS, db, logger)
-    operation = Operation(db, logger)
+    app.logger.log(msg="\n"*3, timestamped=False, level_display=False)
+    app.logger.log(msg="*"*150, timestamped=False, level_display=False)
+    app.logger.log(msg="*"*65+"Started new session!"+"*"*65, timestamped=False, level_display=False)
+    app.logger.log(msg="*"*150, timestamped=False, level_display=False)
 
     for realm_id in REALMS:
         realm = Realm(realm_id, db, logger, request)
         operation.realms.append(realm)
 
-    operation.setLiveData(request)
+    app.setLiveData()
 
-    return operation, request
+    return app
 
 
 
@@ -51,11 +42,12 @@ def wait(duration):
 
 
 def main():
+    open_time = datetime.now()
 
     while True:
         round = True
+        close_time = datetime.now()
         for realm in operation.realms:
-
             response = request.getAuctionData(realm, operation)
 
             if response:
@@ -65,19 +57,21 @@ def main():
 
                 realm.setAuctionData(response, operation, request)
 
-                # realm.export(insert_data['items'])
-        if len(operation.insert_data) > 0: operation.insertData()
-        if len(operation.update_data) > 0: operation.updateData()
+                operation.insertData(realm)
+                operation.updateData(realm)
+                operation.exportData([1096,], open_time, close_time)
+                operation.update(realm)
 
-        operation.update()
+                open_time = datetime.now()
 
         wait(600)
+
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--test", dest="test", action="store_true")
     args = parser.parse_args()
-    operation, request = setup(args.test)
+    app = setup(args.test)
 
     main()

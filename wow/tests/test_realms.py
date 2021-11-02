@@ -16,7 +16,7 @@ class RealmTest(unittest.TestCase):
         from config import DATABASE as db_data, CREDENTIALS as data
 
         logger = Logger(os.getcwd())
-        db = Database(db_data, logger, test=True)
+        db = Database(db_data, logger, test=True, testcase=True)
         request = Request(data, db, logger)
         store = [True, False, True]
         region = [True, False, False]

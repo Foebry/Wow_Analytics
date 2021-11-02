@@ -8,7 +8,7 @@ import random
 
 
 
-class Auction():
+class Auction:
     """docstring"""
     def __init__(self, realm, operation=None, request=None, test=False, *args, **kwargs):
         """Auction constructor. Takes in 7 args. Always needs 6 arguments, so either args or kwargs need to be given:
@@ -23,7 +23,7 @@ class Auction():
         rebuild_auction = operation is None and kwargs
 
         if rebuild_auction:
-            self.id = kwargs["_id"]
+            self.id = kwargs["id_"]
             self.realm = realm
             self.item_id = kwargs["item_id"]
             self.pet_id = kwargs["pet_id"]
@@ -40,7 +40,7 @@ class Auction():
         self.realm = realm
         self.id = args[0]
         self.item_id = args[1]
-        self.pet_id = args[2]["_id"]
+        self.pet_id = args[2]["id_"]
         self.quantity = args[3]
         self.unit_price = args[4]
         self.time_left = args[5]
@@ -49,46 +49,51 @@ class Auction():
         self.time_posted = setTimePosted(test=test)
         self.last_updated = self.time_posted
 
-        first_pet = self.item_id == 82800 and self.item_id not in operation.live_data["items"]
-        is_pet = self.item_id == 82800 and self.item_id in operation.live_data["items"]
-        existing_pet = is_pet and self.pet_id in operation.live_data["items"][self.item_id]
-        new_pet = is_pet and self.pet_id not in operation.live_data["items"][self.item_id]
-        new_item = not self.item_id == 82800 and self.item_id not in operation.live_data["items"]
-        existing_item = not self.item_id == 82800 and self.item_id in operation.live_data["items"]
+        live_items = operation.live_data["items"]
+        first_pet = self.item_id == 82800 and self.item_id not in live_items
+        is_pet = self.item_id == 82800 and self.item_id in live_items
+        existing_pet = is_pet and self.pet_id in live_items[self.item_id]
+        new_pet = is_pet and self.pet_id not in live_items[self.item_id]
+        new_item = not self.item_id == 82800 and self.item_id not in live_items
+        existing_item = not self.item_id == 82800 and self.item_id in live_items
         new_auction = operation is not None and self.id not in realm.previous_auctions
         existing_auction = operation is not None and self.id in realm.previous_auctions
 
 
         if existing_item:
-            self.Item = operation.live_data["items"][self.item_id]
+            self.Item = live_items[self.item_id]
 
         elif new_item:
             item = Item(operation, request, self.item_id)
-            operation.live_data["items"][self.item_id] = item
+            live_items[self.item_id] = item
             self.Item = item
 
         elif existing_pet:
-            self.Item = operation.live_data["items"][self.item_id][self.pet_id]
+            self.Item = live_items[self.item_id][self.pet_id]
 
         elif new_pet:
-            item = Item(operation, request, self.item_id, args[2])
-            operation.live_data["items"][self.item_id][self.pet_id] = item
+            kwargs = {"pet_id": args[2]}
+            item = Item(operation, request, self.item_id, **kwargs)
+            live_items[self.item_id][self.pet_id] = item
             self.Item = item
 
         elif first_pet:
-            item = Item(operation, request, self.item_id, args[2])
-            operation.live_data["items"][self.item_id] = {}
-            operation.live_data["items"][self.item_id][self.pet_id] = item
+            kwargs = {"pet_id": args[2]}
+            item = Item(operation, request, self.item_id, **kwargs)
+            live_items[self.item_id] = {}
+            live_items[self.item_id][self.pet_id] = item
             self.Item = item
 
         else: return
 
+        realm.auctions[self.id] = self
+
         if new_auction:
-            realm.auctions[self.id] = self
             self.insert(operation)
 
         elif existing_auction:
-            self.update(operation, realm, realm.previous_auctions[self.id], test)
+            previous_auction = realm.previous_auctions[self.id]
+            self.update(operation, realm, previous_auction, test)
 
 
     def insert(self, operation):
@@ -126,21 +131,14 @@ class Auction():
         unset_realm_update_data_auctions = "auctions" in operation.update_data and self.realm.id not in operation.update_data["auctions"]
         unset_auctions_update_data = "auctions" not in operation.update_data
 
-        # new time_posted = existing time_posted
-        self.time_posted = existing.time_posted
-        self.last_updated = setTimePosted()
-
         if sold_quantity > 0:
             # create sold_auction
             args = (existing, self.id, self.item_id, self.pet_id, sold_quantity, self.unit_price, self.time_left, bid, buyout, self.time_posted, True)
             sold_auction = SoldAuction(operation, test, *args)
 
-        # remove auction_id from previous_auctions
-        if not test:
-            del self.realm.previous_auctions[self.id]
-
-        # add to live_data
-        realm.auctions[self.id] = self
+        # new time_posted = existing time_posted
+        self.time_posted = existing.time_posted
+        self.last_updated = setTimePosted()
 
         # adding auction to be updated
         if set_realm_update_data_auctions:
@@ -152,6 +150,8 @@ class Auction():
         elif unset_auctions_update_data:
             operation.update_data["auctions"] = {}
             operation.update_data["auctions"][self.realm.id] = [self]
+
+        del realm.previous_auctions[existing.id]
 
 
 
@@ -187,7 +187,6 @@ class SoldAuction():
         set_sold_auctions_insert_data = "sold_auctions" in operation.insert_data
         set_realm_insert_data_sold_auctions = set_sold_auctions_insert_data and self.realm.id in operation.insert_data["sold_auctions"]
 
-
         if not set_sold_auctions_insert_data:
             operation.insert_data["sold_auctions"] = {}
             operation.insert_data["sold_auctions"][self.realm.id] = []
@@ -195,21 +194,22 @@ class SoldAuction():
         elif not set_realm_insert_data_sold_auctions:
             operation.insert_data["sold_auctions"][self.realm.id] = []
 
+        insert_soldauctions = operation.insert_data["sold_auctions"][self.realm.id]
+
         if self.partial:
             # partially sold auctions will always be considered as sold
-            operation.insert_data["sold_auctions"][self.realm.id].append(self)
+            insert_soldauctions.append(self)
+
             return item.updateMean(self, operation)
 
-        insert_auctions = operation.insert_data["sold_auctions"][self.realm.id]
         auctions_to_check = [
-                                insert_auctions[x] for x in range(len(insert_auctions))
-                                if insert_auctions[x].Auction.Item.id == self.Auction.Item.id
-                        ]
+                            insert_soldauctions[x] for x in range(len(insert_soldauctions))
+                            if insert_soldauctions[x].Auction.Item.id == self.Auction.Item.id
+                            ]
 
         if not test and self.isValidSoldAuction(operation, auctions_to_check):
-            operation.insert_data["sold_auctions"][self.realm.id].append(self)
+            insert_soldauctions.append(self)
             item.updateMean(self, operation)
-
 
 
     def isValidSoldAuction(self, operation, auctions_to_check):
@@ -222,13 +222,11 @@ class SoldAuction():
         valid = self.time_left != "SHORT" and not_overpriced
 
         for soldauction in auctions_to_check:
-            cheaper = self.unit_price < soldauction.unit_price
+            more_expensive = self.unit_price > soldauction.unit_price
             got_undercut = self.unit_price == soldauction.unit_price and self.Auction.time_posted < soldauction.Auction.time_posted
 
-            if not cheaper or got_undercut: return False
+            if more_expensive or got_undercut: return False
 
-        if valid:
-            del self.realm.auctions[self.Auction.id]
-            return True
+        if valid: return True
 
         return False

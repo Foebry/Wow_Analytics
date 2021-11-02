@@ -295,7 +295,7 @@ class OperationTest(unittest.TestCase):
 
 if __name__ == "__main__":
     logger = Logger(os.getcwd())
-    db = Database(DATABASE, logger, test=True)
+    db = Database(DATABASE, logger, test=True, testcase=True)
     operation = Operation(db, logger)
     request = Request(CREDENTIALS, db, logger)
     realm = Realm(1096, db, logger, request)

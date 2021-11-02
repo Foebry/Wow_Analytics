@@ -1,5 +1,6 @@
 """Realms functionality"""
 
+import os
 
 
 class Realm:
@@ -51,9 +52,33 @@ class Realm:
         self.database.write(query)
 
 
-    def exportAuctionData(self):
-        pass
+    def exportData(self, operation, open_time, close_time):
+        from datetime import datetime
 
+        now = datetime.now()
+        now = round(datetime.timestamp(now))
+        open_time = round(datetime.timestamp(open_time))
+        close_time = round(datetime.timestamp(close_time))
+
+        space = " "
+        data = ""
+
+        with open(self.output, 'r') as file:
+            data = file.read()[:-1]
+            data += "\n {} {} \n{}".format(now, '{\n', space*3)
+            data += "{}\n{}".format(open_time, space*3)
+            data += "{}\n{}".format(close_time, space*3)
+            for item in operation.export_items:
+                data += "{} {}\n{}".format(item.id, '{', space*6)
+                data += "open = {},\n{}".format(item.open, space*6)
+                data += "low = {},\n{}".format(item.low, space*6)
+                data += "high = {},\n{}".format(item.high, space*6)
+                data += "close = {},\n{}".format(item.close, space*6)
+                data += "amount = {},\n{}".format(item.amount, space*3)
+            data += "}\n}"
+
+        with open(self.output, 'w') as file:
+            file.write(data)
 
 
     def setOutputFile(self, request, region):
@@ -66,7 +91,13 @@ class Realm:
         location = "D://Games//World of Warcraft//_retail_//Interface//AddOns//wow_analytics//"
         extension = ".lua"
 
-        return location + slug + extension
+        outputfile = location + slug + extension
+
+        if not os.path.exists(outputfile):
+            with open(outputfile, 'a') as file:
+                file.write("{}")
+
+        return outputfile
 
 
 
@@ -87,10 +118,10 @@ class Realm:
         for auction in response:
             auction_id = auction["id"]
             item_id = auction["item"]["id"]
-            pet = {"_id":0}
+            pet = {"id_":0}
 
             if item_id == 82800:
-                pet = {"_id":auction["item"]["pet_species_id"], "quality":auction["item"]["pet_quality_id"], "level":auction["item"]["pet_level"], "breed_id":auction["item"]["pet_breed_id"]}
+                pet = {"id_":auction["item"]["pet_species_id"], "quality":auction["item"]["pet_quality_id"], "level":auction["item"]["pet_level"], "breed_id":auction["item"]["pet_breed_id"]}
 
             quantity = auction["quantity"]
             time_left = auction["time_left"]

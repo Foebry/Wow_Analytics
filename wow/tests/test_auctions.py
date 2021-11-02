@@ -296,7 +296,7 @@ class SoldAuctionTest(unittest.TestCase):
 
 if __name__ == "__main__":
     logger = Logger(os.getcwd())
-    db = Database(DATABASE, logger, True)
+    db = Database(DATABASE, logger, True, True)
     request = Request(CREDENTIALS, db, logger)
     operation = Operation(db, logger)
     realm = Realm(1096, db, logger, request)

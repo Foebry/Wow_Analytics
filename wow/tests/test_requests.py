@@ -16,7 +16,7 @@ class RequestTest(unittest.TestCase):
         from config import CREDENTIALS as data
 
         logger = Logger(os.getcwd())
-        db = Database(db_data, logger, test=True)
+        db = Database(db_data, logger, test=True, testcase=True)
         request = Request(data, db, logger)
         operation = Operation(db, logger)
 
