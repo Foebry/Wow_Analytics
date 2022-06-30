@@ -1,23 +1,33 @@
-DATABASE = {
-    'host': '123.456.789',
-    'user': 'user',
-    'password': 'password',
-    'schema': 'schema',
-    'schema-test': 'test',
-    'restraint': 1000,
-    'type': 'type'
-}
-
-
-CREDENTIALS = {
-    'client_id': 'your_client_id',
-    'client_secret': 'your_client_secret',
-}
-
-
-REALMS = {
-    realm_id: {
-        'name': "Realm name",
-        "file": "path_to_export_file_in_wow_addons_folder.lua",
+{
+  "DATABASE": {
+    "host": "123.456.789",
+    "user": "user",
+    "password": "password",
+    "schema": "schema",
+    "schema-test": "schema-test",
+    "restraint": 1000,
+    "type": "type"
+  },
+  "APP":{
+    "security": "security-type",
+    "oauth-endpoint": "oauth",
+    "oauth-request-data": "access_token",
+    "endpoint": "https://eu.api.blizzard.com/data/wow/{}?namespace={}-eu&locale=en_GB{}&access_token={token}",
+    "CREDENTIALS": {
+      "grant_type":"client_credentials",
+      "client_id": "YOUR_CLIENT_ID",
+      "client_secret": "YOUR_CLIENT_SECRET"
+    },
+    "REALMS": [
+      a,
+      list,
+      of,
+      realms,
+      you,
+      want,
+      to,
+      track,
+      "REGION"
+      ]
     }
-}
+  }

@@ -1,28 +1,51 @@
-"""extra functions not directly related to any class"""
+from databases.Database import Database
+from logger.Logger import Logger
+from wow.api import API
+from math import floor
+
 import datetime
 import random
 import concurrent.futures
 
 
+class App:
 
-class Operation:
-
-    def __init__(self, db, logger):
-        self.database = db
-        self.logger = logger
+    def __init__(self, data):
+        self.data = data
+        self.api = API(data["APP"])
+        self.db = Database(data["DATABASE"])
+        self.logger = Logger(os.getcwd())
         self.live_data = {"items":{}, "classes":{}, "pets":{}, "mounts":{}}
         self.insert_data = {"items":[], "classes":[], "subclasses":[], "pets":[], "mounts":[], "item_prices":[]}
         self.update_data = {}
         self.realms = []
+        self.export_items = []
 
+
+    def findRealm(self, realm_id):
+        """
+
+        """
+        for realm in self.realms:
+            if realm.id == realm_id: return realm
+
+
+    def exportData(self, open, close):
+        """
+
+        """
+        for realm_id in self.data["REALMS"]:
+            realm = self.findRealm(realm_id)
+            realm.exportData(self, open, close)
 
 
     def createInsertAuctionsQuery(self, section, realm):
-        from math import floor
+        """
 
+        """
         begin = section[0]
         end = section[1]
-        next = end + self.database.restraint
+        next = end + self.db.restrain
         remaining = end - begin
         auctions = len(self.insert_data["auctions"][realm.id])
 
@@ -30,8 +53,9 @@ class Operation:
         print("inserting auctions {} - {}".format(section[0], min(section[1], auctions)), end="\r")
 
         auctions_query = "INSERT into auctionhouses(realm_id, auction_id, item_id, pet_id, quantity, unit_price, time_left, bid, buyout, time_posted, last_updated) values\n"
+        insert_auctions = self.insert_data["auctions"][realm.id]
 
-        for auction in self.insert_data["auctions"][realm.id][begin:min(end, auctions)]:
+        for auction in insert_auctions[begin:end]:
 
             pet_id = 0
             if auction.item_id == 82800: pet_id = auction.pet_id
@@ -40,8 +64,8 @@ class Operation:
             auctions_query += auction_values
 
         auctions_query = auctions_query[:-2] + ";"
-
-        good_section = self.database.write(auctions_query)
+        #self.logger.log(msg=auctions_query)
+        good_section = self.db.write(auctions_query)
         if not good_section: return self.createInsertAuctionsQuery((begin, floor(begin+remaining/2)), realm)
 
         if end < auctions: return self.createInsertAuctionsQuery((end, next), realm)
@@ -49,13 +73,10 @@ class Operation:
         return self.logger.log(msg=f"Inserted {auctions} auctions")
 
 
-
     def createUpdateAuctionsQuery(self, section, realm):
-        from math import floor
-
         begin = section[0]
         end = section[1]
-        next = end +self.database.restraint
+        next = end +self.db.restraint
         remaining = end - begin
         auctions = len(self.update_data["auctions"][realm.id])
 
@@ -89,7 +110,7 @@ class Operation:
 
         update_query = update_query + update_quantity + update_time_left + update_bid + update_buyout + update_last_updated + where + realm_id
 
-        good_section = self.database.update(update_query)
+        good_section = self.db.update(update_query)
         if not good_section: return self.createUpdateAuctionsQuery((begin, floor(begin+remaining/2)), realm)
 
         if end < auctions: return self.createUpdateAuctionsQuery((end, next), realm)
@@ -97,13 +118,10 @@ class Operation:
         return self.logger.log(msg=f"Updated {auctions} auctions")
 
 
-
     def createSoldauctionsQuery(self, section, realm):
-        from math import floor
-
         begin = section[0]
         end = section[1]
-        next = end + self.database.restraint
+        next = end + self.db.restraint
         remaining = end - begin
         len_sold_auctions = len(self.insert_data["sold_auctions"][realm.id])
 
@@ -122,24 +140,21 @@ class Operation:
 
         sold_auctions_query = sold_auctions_query[:-2] + ";"
 
-        good_section = self.database.write(sold_auctions_query)
-        if not good_section: return self.createSoldauctionsQuery((begin, floor(begin+remaining/2)), realm.id)
+        good_section = self.db.write(sold_auctions_query)
+        if not good_section: return self.createSoldauctionsQuery((begin, floor(begin+remaining/2)), realm)
 
-        if end < len_sold_auctions: return self.createSoldauctionsQuery((end, next), realm.id)
+        if end < len_sold_auctions: return self.createSoldauctionsQuery((end, next), realm)
 
         return self.logger.log(msg=f"Inserted {len_sold_auctions} sold auctions")
 
 
-
     def createInsertItemsQuery(self, section):
-        from math import floor
-
         print(" "*100, end="\r")
         print("inserting items {} - {}".format(section[0], section[1]), end="\r")
 
         begin = section[0]
         end = section[1]
-        next = end + self.database.restraint
+        next = end + self.db.restraint
         remaining = end - begin
         items = len(self.insert_data["items"])
 
@@ -168,12 +183,12 @@ class Operation:
             if pet_id is None: pet_id = 0
             if mount_id is None: mount_id = 0
 
-            item_values = "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s),\n  "%(item.id, pet_id, mount_id, item.level, name, f'"{item.quality}"', item.class_id, item.subclass_id, f'"{item.type}"', f'"{item.subtype}"', item.mean_price)
+            item_values = "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s),\n  "%(item.id, pet_id, mount_id, item.level, name, f'"{item.quality}"', item.item_class, item.item_subclass, f'"{item.type}"', f'"{item.subtype}"', item.mean_price)
             insert_items_query += item_values
 
         insert_items_query = insert_items_query[:-4] + ";"
 
-        good_section = self.database.write(insert_items_query)
+        good_section = self.db.write(insert_items_query)
         if not good_section: return self.createInsertItemsQuery((begin, floor(begin+remaining/2)))
 
         if end < items: return self.createInsertItemsQuery((end, next))
@@ -181,15 +196,10 @@ class Operation:
         return self.logger.log(msg=f"Inserted {items} items" )
 
 
-
     def createUpdateItemsQuery(self, section):
-        from math import floor
-
         begin = section[0]
         end = section[1]
-        next = end + self.database.restraint
-
-        # if begin > end: RaiseError.ValueError("section[0] is greater then section[1] for createUpdateItemsQuery functions.py")
+        next = end + self.db.restraint
 
         remaining = end - begin
         items = len(self.update_data["items"])
@@ -208,7 +218,7 @@ class Operation:
         update_query += "   else mean_price \n end\n"
         update_query += where
 
-        good_section = self.database.update(update_query)
+        good_section = self.db.update(update_query)
         if not good_section: return self.createUpdateItemsQuery((begin, floor(begin+remaining/2)))
 
         if end < items: return self.createUpdateItemsQuery((end, next))
@@ -216,13 +226,12 @@ class Operation:
         return self.logger.log(msg=f"Updated {items} items")
 
 
-
     def createInsertMountsQuery(self, section):
         from math import floor
 
         begin = section[0]
         end = section[1]
-        next = end + self.database.restraint
+        next = end + self.db.restraint
 
         remaining = end - begin
         mounts = len(self.insert_data["mounts"])
@@ -238,7 +247,7 @@ class Operation:
 
         insert_mounts_query = insert_mounts_query[:-7] + ";"
 
-        good_section = self.database.write(insert_mounts_query)
+        good_section = self.db.write(insert_mounts_query)
         if not good_section: return self.createInsertMountsQuery((begin, floor(begin+remaining/2)))
 
         if end < mounts: return self.createInsertMountsQuery((end, next))
@@ -246,13 +255,12 @@ class Operation:
         return self.logger.log(msg=f"Inserted {mounts} mounts")
 
 
-
     def createInsertPetsQuery(self, section):
         from math import floor
 
         begin = section[0]
         end = section[1]
-        next = end + self.database.restraint
+        next = end + self.db.restraint
 
         remaining = end - begin
         pets = len(self.insert_data["pets"])
@@ -268,7 +276,7 @@ class Operation:
 
         insert_pets_query = insert_pets_query[:-5] + ";"
 
-        good_section = self.database.write(insert_pets_query)
+        good_section = self.db.write(insert_pets_query)
         if not good_section: return self.createInsertPetsQuery((begin, floor(begin+remaining/2)))
 
         if end < pets: return self.createInsertPetsQuery((end, next))
@@ -276,13 +284,12 @@ class Operation:
         return self.logger.log(msg=f"Inserted {pets} pets")
 
 
-
     def createInsertClassesQuery(self, section):
         from math import floor
 
         begin = section[0]
         end = section[1]
-        next = end + self.database.restraint
+        next = end + self.db.restraint
 
         remaining = end - begin
         classes = len(self.insert_data["classes"])
@@ -298,7 +305,7 @@ class Operation:
 
         insert_classes_query = insert_classes_query[:-3] + ";"
 
-        good_section = self.database.write(insert_classes_query)
+        good_section = self.db.write(insert_classes_query)
         if not good_section: return self.createInsertClassesQuery((begin, floor(begin+remaining/2)))
 
         if end < classes: return self.createInsertClassesQuery((end, next))
@@ -306,13 +313,12 @@ class Operation:
         return self.logger.log(msg=f"Inserted {classes} classes")
 
 
-
     def createInsertSubclassesQuery(self, section):
         from math import floor
 
         begin = section[0]
         end = section[1]
-        next = end + self.database.restraint
+        next = end + self.db.restraint
 
         remaining = end - begin
         subclasses = len(self.insert_data["subclasses"])
@@ -324,12 +330,12 @@ class Operation:
         insert_subclass_query = "INSERT INTO subclasses(Class_id, id, name) VALUES\n    "
 
         for subclass in self.insert_data["subclasses"]:
-            subclass_values = "(%s, %s, %s),\n  "%(subclass.class_id, subclass.subclass_id, f'"{subclass.name}"')
+            subclass_values = "(%s, %s, %s),\n  "%(subclass.id, subclass.subclass_id, f'"{subclass.name}"')
             insert_subclass_query += subclass_values
 
         insert_subclass_query = insert_subclass_query[:-4] + ";"
 
-        good_section = self.database.write(insert_subclass_query)
+        good_section = self.db.write(insert_subclass_query)
         if not good_section: return self.createInsertSubclassesQuery((begin, floor(begin+remaining/2)))
 
         if end < subclasses: return self.createInsertSubclassesQuery((end, next))
@@ -338,7 +344,7 @@ class Operation:
 
 
 
-    def insertData(self):
+    def insertData(self, realm):
         """
             Function responsible to write all data into the database.
         """
@@ -353,27 +359,27 @@ class Operation:
 
         if mounts_to_insert:
             mounts = len(self.insert_data["mounts"])
-            section = (0, min(self.database.restraint, mounts))
+            section = (0, min(self.db.restraint, mounts))
             self.createInsertMountsQuery(section)
 
         if pets_to_insert:
             pets = len(self.insert_data["pets"])
-            section = (0, min(self.database.restraint, pets))
+            section = (0, min(self.db.restraint, pets))
             self.createInsertPetsQuery(section)
 
         if classes_to_insert:
             classes = len(self.insert_data["classes"])
-            section = (0, min(self.database.restraint, classes))
+            section = (0, min(self.db.restraint, classes))
             self.createInsertClassesQuery(section)
 
         if subclasses_to_insert:
             subclasses = len(self.insert_data["subclasses"])
-            section = (0, min(self.database.restraint, subclasses))
+            section = (0, min(self.db.restraint, subclasses))
             self.createInsertSubclassesQuery(section)
 
         if items_to_insert:
             items = len(self.insert_data["items"])
-            section = (0, min(self.database.restraint, items))
+            section = (0, min(self.db.restraint, items))
             self.createInsertItemsQuery(section)
 
         # insert prices
@@ -386,38 +392,40 @@ class Operation:
                 insert_string += price_values
 
             insert_string = insert_string[:-3] + ";"
-            self.database.write(insert_string)
+            self.db.write(insert_string)
             insert_strings = len(self.update_data["items"])
             self.logger.log(msg="Inserted %s item_price changes" %insert_strings)
 
-        for realm in self.realms:
-            auctions_to_insert = "auctions" in self.insert_data and realm.id in self.insert_data["auctions"] and len(self.insert_data["auctions"][realm.id]) > 0
-            fully_sold_auctions = realm.id in realm.previous_auctions and len(realm.previous_auctions[realm.id]) > 0
-
-            if auctions_to_insert:
-
-                auctions = len(self.insert_data["auctions"][realm.id])
-                section = (0, min(self.database.restraint, auctions))
-                self.createInsertAuctionsQuery(section, realm)
-
-            # adding fully sold auctions to insert_data
-            if fully_sold_auctions:
-                from auctions import SoldAuction
-                for auction_id in realm.previous_auctions:
-                    auction = realm.previous_auctions[auction_id]
-                    args = (auction, auction.id, auction.item_id, auction.pet_id, auction.quantity, auction.unit_price, auction.time_left, auction.bid, auction.buyout, auction.time_posted, False)
-                    sold_auction = SoldAuction(self.insert_data, self.update_data, self.logger, auction)
-
-            sold_auctions_to_insert = "sold_auctions" in self.insert_data and len(self.insert_data["sold_auctions"][realm.id]) > 0
-
-            if sold_auctions_to_insert:
-                soldauctions = len(self.insert_data["sold_auctions"][realm.id])
-                section = (0, min(self.database.restraint, soldauctions))
-                self.createSoldauctionsQuery(section, realm)
 
 
+        auctions_to_insert = "auctions" in self.insert_data and realm.id in self.insert_data["auctions"] and len(self.insert_data["auctions"][realm.id]) > 0
+        fully_sold_auctions = len(realm.previous_auctions) > 0
 
-    def updateData(self):
+        if auctions_to_insert:
+            auctions = len(self.insert_data["auctions"][realm.id])
+            section = (0, min(self.db.restraint, auctions))
+            self.createInsertAuctionsQuery(section, realm)
+
+        # adding fully sold auctions to insert_data
+        #print("fully_sold_auctions:", fully_sold_auctions, "len realm.previous_auctions:", len(realm.previous_auctions))
+        if fully_sold_auctions:
+            from auctions import SoldAuction
+            previous_auctions = realm.previous_auctions.copy()
+            for auction_id in previous_auctions:
+                auction = previous_auctions[auction_id]
+                args = (auction, auction.id, auction.item_id, auction.pet_id, auction.quantity, auction.unit_price, auction.time_left, auction.bid, auction.buyout, auction.time_posted, False)
+                sold_auction = SoldAuction(self, False, *args)
+
+        sold_auctions_to_insert = "sold_auctions" in self.insert_data and len(self.insert_data["sold_auctions"][realm.id]) > 0
+
+        if sold_auctions_to_insert:
+            soldauctions = len(self.insert_data["sold_auctions"][realm.id])
+            section = (0, min(self.db.restraint, soldauctions))
+            self.createSoldauctionsQuery(section, realm)
+
+
+
+    def updateData(self, realm):
         """Updates all data to be updated (auctions, items). Takes in 2 arguments:
             :arg database: obj<Database>,
             :arg update_data: dict"""
@@ -427,75 +435,73 @@ class Operation:
 
         self.logger.log(msg="\n")
 
-        for realm in self.realms:
-            auctions_to_update = "auctions" in self.update_data and len(self.update_data["auctions"][realm.id]) > 0
-            if auctions_to_update:
-                self.createUpdateAuctionsQuery((0, self.database.restraint), realm)
+        auctions_to_update = "auctions" in self.update_data and len(self.update_data["auctions"][realm.id]) > 0
+        if auctions_to_update:
+            self.createUpdateAuctionsQuery((0, self.db.restraint), realm)
 
         if items_to_update:
             end = len(self.update_data["items"])
-            self.createUpdateItemsQuery((0, self.database.restraint))
+            self.createUpdateItemsQuery((0, self.db.restraint))
 
-        if realms_to_update:
-            for realm in self.update_data["realms"]: realm.update()
+        realm.update()
 
 
 
     def setLiveMount(self, mount_data):
         from mounts import Mount
 
-        _id = mount_data[0]
+        id_ = mount_data[0]
         name = mount_data[1]
         source = mount_data[2]
         faction = mount_data[3]
 
-        kwargs = {"_id":_id, "name":name, "source":source, "faction":faction}
+        kwargs = {"id_":id_, "name":name, "source":source, "faction":faction}
 
-        self.live_data["mounts"][_id] = Mount(**kwargs)
+        self.live_data["mounts"][id_] = Mount(**kwargs)
 
 
 
     def setLivePets(self, pet_data):
         from pets import Pet
 
-        _id = pet_data[0]
+        id_ = pet_data[0]
         name = pet_data [1]
         type = pet_data[2]
         source = pet_data[3]
         faction = pet_data[4]
 
-        kwargs = {"_id":_id, "name": name, "type":type, "source":source, "faction":faction}
+        kwargs = {"id_":id_, "name": name, "type":type, "source":source, "faction":faction}
 
-        self.live_data["pets"][_id] = Pet(**kwargs)
+        self.live_data["pets"][id_] = Pet(**kwargs)
 
 
     def setLiveClasses(self, class_data):
         from classes import Class
 
-        _id = class_data[0]
+        id_ = class_data[0]
         name = class_data[1]
 
-        kwargs = {"_id":_id, "name": name, "subclasses":{}}
+        kwargs = {"id_":id_, "name": name, "subclasses":{}}
 
-        self.live_data["classes"][_id] = Class(**kwargs)
+        self.live_data["classes"][id_] = Class(**kwargs)
 
 
     def setLiveSubclasses(self, subclass_data):
         from classes import Subclass
 
         class_id = subclass_data[0]
-        _id = subclass_data[1]
+        id_ = subclass_data[1]
         name = subclass_data[2]
 
-        kwargs = {"class_id":class_id, "subclass_id":_id, "name": name}
+        kwargs = {"class_id":class_id, "subclass_id":id_, "name": name}
 
-        self.live_data["classes"][class_id].subclasses[_id] = Subclass(**kwargs)
+        self.live_data["classes"][class_id].subclasses[id_] = Subclass(**kwargs)
 
 
     def setLiveItem(self, item_data):
         from items import Item
 
-        _id = item_data[0]
+        id_ = item_data[0]
         pet_id = item_data[1]
         mount_id = item_data[2]
         level = item_data[3]
@@ -512,7 +518,7 @@ class Operation:
         if price is None: price = 0.0
 
         kwargs = {
-                    "_id":_id, "pet":{"_id":pet_id}, "mount":{"_id":mount_id}, "level":level,
+                    "id_":id_, "pet_id":pet_id, "mount_id":mount_id, "level":level,
                     "name":name, "quality":quality, "item_class":item_class,
                     "item_subclass":item_subclass, "type":type, "subtype":subtype,
                     "mean_price":mean_price, "sold":sold, "price":price,
@@ -520,7 +526,7 @@ class Operation:
                 }
 
         is_item = pet_id == 0 and mount_id == 0
-        is_pet = _id == 82800
+        is_pet = id_ == 82800
         is_mount = pet_id == 0 and not mount_id == 0
         existing_class = item_class in self.live_data["classes"]
         existing_subclass = existing_class and item_subclass in self.live_data["classes"][item_class].subclasses
@@ -532,22 +538,28 @@ class Operation:
         if existing_subclass: kwargs["Subclass"] = self.live_data["classes"][item_class].subclasses[item_subclass]
 
         if is_item:
-            self.live_data["items"][_id] = Item(**kwargs)
+            self.live_data["items"][id_] = Item(**kwargs)
 
         elif existing_pet:
             kwargs["Pet"] = self.live_data["pets"][pet_id]
-            self.live_data["items"][_id][pet_id] = Item(**kwargs)
+
+            if 82800 not in self.live_data["items"]:
+                self.live_data["items"][82800] = {}
+                self.live_data["items"][id_][pet_id] = Item(**kwargs)
+                return
+
+            self.live_data["items"][id_][pet_id] = Item(**kwargs)
 
         elif existing_mount:
             kwargs["Mount"] = self.live_data["mounts"][mount_id]
-            self.live_data["items"][_id] = Item(**kwargs)
+            self.live_data["items"][id_] = Item(**kwargs)
 
 
     def setLiveAuction(self, realm, auction_data):
         from auctions import Auction
 
         realm_id = auction_data[0]
-        _id = auction_data[1]
+        id_ = auction_data[1]
         item_id = auction_data[2]
         pet_id = auction_data[3]
         quantity = auction_data[4]
@@ -558,7 +570,7 @@ class Operation:
         time_posted = auction_data[9]
         last_updated = auction_data[10]
         kwargs = {
-                    "realm_id":realm_id, "_id":_id, "item_id":item_id, "pet_id":pet_id, "quantity":quantity, "unit_price":unit_price,
+                    "realm_id":realm_id, "id_":id_, "item_id":item_id, "pet_id":pet_id, "quantity":quantity, "unit_price":unit_price,
                     "time_left":time_left, "bid":bid, "buyout":buyout, "time_posted":time_posted, "last_updated":last_updated
                     }
         try: kwargs["Item"] = self.live_data["items"][item_id]
@@ -567,14 +579,13 @@ class Operation:
         if item_id == 82800:
             kwargs["Item"] = self.live_data["items"][item_id][pet_id]
 
-        realm.previous_auctions[_id] = Auction(realm, **kwargs)
-        return realm.auctions
+        realm.previous_auctions[id_] = Auction(realm, **kwargs)
 
 
-    def setLiveData(self, request):
+    def setLiveData(self):
 
         # set mounts
-        data = self.database.get("SELECT * from mounts", all=True)
+        data = self.db.get("SELECT * from mounts", all=True)
         if len(data) > 0:
             try:
                 with concurrent.futures.ThreadPoolExecutor() as exe:
@@ -584,7 +595,7 @@ class Operation:
         self.logger.log(msg=msg)
 
         # set pets
-        data = self.database.get("SELECT * from pets", all=True)
+        data = self.db.get("SELECT * from pets", all=True)
         if len(data) > 0:
             try:
                 with concurrent.futures.ThreadPoolExecutor() as exe:
@@ -594,7 +605,7 @@ class Operation:
         self.logger.log(msg=msg)
 
         # set classes
-        data = self.database.get("SELECT * from classes", all=True)
+        data = self.db.get("SELECT * from classes", all=True)
         if len(data) > 0:
             try:
                 with concurrent.futures.ThreadPoolExecutor() as exe:
@@ -605,7 +616,7 @@ class Operation:
 
         # set subclasses
         query = "SELECT * from subclasses"
-        data = self.database.get(query, all=True)
+        data = self.db.get(query, all=True)
         if len(data) > 0:
             try:
                 with concurrent.futures.ThreadPoolExecutor() as exe:
@@ -624,12 +635,13 @@ class Operation:
                    group by items.id, items.pet_id
                    order by items.id, items.pet_id
                """
-        data = self.database.get(query, True)
+        data = self.db.get(query, True)
         if len(data) > 0:
-            try:
-                with concurrent.futures.ThreadPoolExecutor() as exe:
-                    [exe.submit(self.setLiveItem, item) for item in data]
-            except Exception as e: print(e)
+            for item in data: self.setLiveItem(item)
+            #try:
+            #    with concurrent.futures.ThreadPoolExecutor() as exe:
+            #        [exe.submit(self.setLiveItem, item) for item in data]
+            #except Exception as e: print(e)
         items = len(self.live_data["items"])
         pets = 0
         if 82800 in self.live_data["items"]:
@@ -651,23 +663,33 @@ class Operation:
                                     and partial = 0)
                             and time_posted >= "{}"
                     """.format(realm.id, realm.id, border)
-            data = self.database.get(query, all=True)
-            if len(data) > 0:
-                for auction in data:
-                    self.setLiveAuction(realm, auction)
+            data = self.db.get(query, all=True)
+            for auction in data:
+                self.setLiveAuction(realm, auction)
                 #try:
                 #    with concurrent.futures.ThreadPoolExecutor() as exe:
                 #        [exe.submit(setLiveAuction, live_data, auction, logger) for auction in data]
-                #except Exception as err: logger.log(msg=err, err=err)
+                #except Exception as err: self.logger.log(msg=err, err=err)
             msg = "Done setting live auctions for realm {}; {} live auctions".format(realm.name, len(realm.previous_auctions.keys()))
             self.logger.log(msg=msg)
 
 
-
-    def update(self):
+    def update(self, realm):
         self.insert_data = {}
         self.update_data = {}
+        self.export_items = []
+        for id_ in self.live_data["items"]:
+            if id_ == 82800:
+                for pet_id in self.live_data["items"][id_]:
+                    item = self.live_data["items"][id_][pet_id]
+                    item.reset()
+                continue
+            item = self.live_data["items"][id_]
+            item.reset()
 
+        temp = realm.auctions.copy()
+        realm.previous_auctions = temp
+        realm.auctions = {}
 
 
 def setTimePosted(test=False):
@@ -684,7 +706,8 @@ def setTimePosted(test=False):
 
 def setTimeSold(posted):
 
-    now = datetime.datetime.now() - datetime.timedelta(hours=1)
+    now = datetime.datetime.now()
+
     diff_us = int((now - posted).total_seconds()*1000000)
     time_sold = posted + datetime.timedelta(microseconds=random.randrange(diff_us))
 

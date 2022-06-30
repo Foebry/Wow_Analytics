@@ -5,12 +5,13 @@ from setuptools import setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-packages = ['wow']
+packages = ['wow', 'wow/app', 'wow/app/objects']
 
 requires = [
+    'cryptography @ git+https://github.com/Foebry/cryptography.git@dev#egg=cryptography',
     'Databases @ git+https://github.com/Foebry/Databases.git#egg=databases',
+    'requesting @ git+https://github.com/Foebry/requesting.git#egg=requesting',
     'Logger @ git+https://github.com/Foebry/Logger.git#egg=Logger',
-    'requests',
     'mysql-connector'
 ]
 

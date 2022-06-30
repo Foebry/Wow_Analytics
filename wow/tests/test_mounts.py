@@ -16,7 +16,7 @@ class MountTest(unittest.TestCase):
         from config import DATABASE, CREDENTIALS
 
         logger = Logger(os.getcwd())
-        db = Database(DATABASE, logger, test=True)
+        db = Database(DATABASE, logger, test=True, testcase=True)
         operation = Operation(db, logger)
         request = Request(CREDENTIALS, db, logger)
 

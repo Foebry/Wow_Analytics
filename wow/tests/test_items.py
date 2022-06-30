@@ -7,6 +7,7 @@ from logger.Logger import Logger
 from databases.Database import Database
 from config import DATABASE, CREDENTIALS
 from realms import Realm
+from math import inf
 
 print("test_items")
 
@@ -284,19 +285,31 @@ class ItemTest(unittest.TestCase):
 
         auction_item = Auction(realm, operation, request, False, *(1, 25, {"_id":0}, 1, buyout, "LONG", 45, buyout))
         auction_pet = Auction(realm, operation, request, False, *(2, 82800, {"_id":39, "quality":3, "level":1, "breed_id":5}, 2, buyout, "MEDIUM", 45, buyout*2))
-        auction_mount = Auction(realm, operation, request, False, *(3, 34060, {"_id":0}, 3, buyout, "SHORT", 45, buyout*3))
+        auction_mount = Auction(realm, operation, request, False, *(3, 34060, {"_id":0}, 3, buyout*3, "SHORT", 45, buyout*3))
+        auction_mount_1 = Auction(realm, operation, request, False, *(4, 34060, {"_id":0}, 1, buyout*6, "MEDIUM", buyout, buyout*6))
+        auction_mount_2 = Auction(realm, operation, request, False, *(5, 34060, {"_id":0}, 1, buyout/2, "LONG", buyout/2, buyout/2))
+        auction_mount_3 = Auction(realm, operation, request, False, *(6, 34060, {"_id":0}, 1, buyout, "VERY_LONG", buyout, buyout))
 
         auction_item.time_posted -= timedelta(hours=1)
         auction_pet.time_posted -= timedelta(hours=1)
         auction_mount.time_posted -= timedelta(hours=1)
+        auction_mount_1.time_posted -= timedelta(hours=2)
+        auction_mount_2.time_posted -= timedelta(hours=2)
+        auction_mount_3.time_posted -= timedelta(hours=2)
         auction_item.last_updated = auction_item.time_posted
         auction_pet.last_updated = auction_pet.time_posted
         auction_mount.last_updated = auction_mount.time_posted
+        auction_mount_1.last_updated = auction_mount_1.time_posted
+        auction_mount_2.last_updated = auction_mount_2.time_posted
+        auction_mount_3.last_updated = auction_mount_3.time_posted
+
 
         sold_auction_item = SoldAuction(operation, False, *(auction_item, 1, 25, 0, 1, buyout, "LONG", 45, buyout, auction_item.time_posted, False))
-        sold_auction_pet = SoldAuction(operation, False, *(auction_pet, 2, 82800, 39, 2, buyout*2, "MEDIUM", 45, buyout*2, auction_pet.time_posted, False))
-        sold_auction_mount = SoldAuction(operation, False, *(auction_mount, 3, 34060, 0, 3, buyout*3, "SHORT", 45, buyout*3, auction_mount.time_posted, False))
-
+        sold_auction_pet = SoldAuction(operation, False, *(auction_pet, 2, 82800, 39, 2, buyout, "MEDIUM", 45, buyout*2, auction_pet.time_posted, False))
+        sold_auction_mount = SoldAuction(operation, False, *(auction_mount, 3, 34060, 0, 3, buyout, "SHORT", 45, buyout*3, auction_mount.time_posted, False))
+        sold_auction_mount_1 = SoldAuction(operation, False, *(auction_mount_1, 4, 34060, 0, 1, buyout*6, "MEDIUM", buyout, buyout*6, auction_mount_1.time_posted, False))
+        sold_auction_mount_2 = SoldAuction(operation, False, *(auction_mount_2, 5, 34060, 0, 1, buyout/2, "LONG", buyout/2, buyout/2, auction_mount_2.time_posted, False))
+        sold_auction_mount_3 = SoldAuction(operation, False, *(auction_mount_3, 6, 34060, 0, 1, buyout, "VERY_LONG", buyout, buyout, auction_mount_3.time_posted, False))
         item_item = new_items[0]
         item_pet = new_items[1]
         item_mount = new_items[2]
@@ -304,16 +317,35 @@ class ItemTest(unittest.TestCase):
         item_item.updateMean(sold_auction_item, operation)
         item_pet.updateMean(sold_auction_pet, operation)
         item_mount.updateMean(sold_auction_mount, operation)
+        item_mount.updateMean(sold_auction_mount_1, operation)
+        item_mount.updateMean(sold_auction_mount_2, operation)
+        item_mount.updateMean(sold_auction_mount_3, operation)
 
         self.assertEqual(50, item_item.mean_price)
         self.assertEqual(50, item_pet.mean_price)
-        self.assertEqual(50, item_mount.mean_price)
+        self.assertEqual(87.5, item_mount.mean_price)
+        self.assertEqual(buyout, item_mount.open)
+        self.assertEqual(buyout/2, item_mount.low)
+        self.assertEqual(buyout*6, item_mount.high)
+        self.assertEqual(buyout, item_mount.close)
+        self.assertEqual(4, item_mount.amount)
+
+
+    def test_reset(self):
+        item = new_items[0]
+        item.reset()
+
+        self.assertEqual(None, item.open)
+        self.assertEqual(inf, item.low)
+        self.assertEqual(-inf, item.high)
+        self.assertEqual(0, item.close)
+        self.assertEqual(0, item.amount)
 
 
 
 if __name__ == "__main__":
     logger = Logger(os.getcwd())
-    db = Database(DATABASE, logger, test=True)
+    db = Database(DATABASE, logger, test=True, testcase=True)
     operation = Operation(db, logger)
     operation.live_data = {"auctions":{}, "items":{}, "classes":{}, "subclasses":{}, "pets":{}, "mounts":{}}
     request = Request(CREDENTIALS, db, logger)
